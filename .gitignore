@@ -361,3 +361,9 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# ── ASP.NET Core Secrets (DO NOT COMMIT) ───────────────────────
+appsettings.Development.json
+appsettings.*.json
+!appsettings.json
+secrets.json
