@@ -30,7 +30,7 @@ A full-stack personal finance tracking web application built with **ASP.NET Core
 ## 🖥️ Screenshots
 
 > Dashboard with charts, expense list, and monthly reports.
-
+https://github.com/user-attachments/assets/70be3623-f9b3-421e-8194-1d4002b89af2
 ---
 
 ## 🛠️ Tech Stack
