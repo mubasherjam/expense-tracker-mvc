@@ -166,8 +166,8 @@ AspNetUsers (Identity)
 ## 👤 Author
 
 **Mubasherjam**
-- GitHub: [@YOUR_USERNAME](https://github.com/YOUR_USERNAME)
-- LinkedIn: [Your LinkedIn](https://linkedin.com)
+- GitHub: [@YOUR_USERNAME](https://github.com/mubasherjam)
+- LinkedIn: [Your LinkedIn](https://linkedin.com/in/mubasherjam)
 
 ---
 
