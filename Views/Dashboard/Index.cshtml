@@ -1,0 +1,211 @@
+@model ExpenseTracker.Models.ViewModels.DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+    var categoryNames  = Model.CategoryBreakdown.Select(c => c.CategoryName).ToList();
+    var categoryTotals = Model.CategoryBreakdown.Select(c => (double)c.Total).ToList();
+    var categoryColors = Model.CategoryBreakdown.Select(c => c.Color).ToList();
+    var dailyLabels    = Model.DailySpending.Select(d => d.Day).ToList();
+    var dailyTotals    = Model.DailySpending.Select(d => (double)d.Total).ToList();
+}
+
+<!-- Summary Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div class="icon-box bg-primary-subtle rounded-3 p-3">
+                    <i class="fas fa-calendar-alt fs-4 text-primary"></i>
+                </div>
+                <div>
+                    <div class="text-muted small">This Month</div>
+                    <div class="fs-5 fw-bold">PKR @Model.TotalThisMonth.ToString("N0")</div>
+                    <div class="text-muted small">@Model.ExpenseCountThisMonth transactions</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div class="icon-box bg-success-subtle rounded-3 p-3">
+                    <i class="fas fa-chart-line fs-4 text-success"></i>
+                </div>
+                <div>
+                    <div class="text-muted small">This Year</div>
+                    <div class="fs-5 fw-bold">PKR @Model.TotalThisYear.ToString("N0")</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div class="icon-box bg-warning-subtle rounded-3 p-3">
+                    <i class="fas fa-coins fs-4 text-warning"></i>
+                </div>
+                <div>
+                    <div class="text-muted small">All Time</div>
+                    <div class="fs-5 fw-bold">PKR @Model.TotalAllTime.ToString("N0")</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div class="icon-box bg-danger-subtle rounded-3 p-3">
+                    <i class="fas fa-fire fs-4 text-danger"></i>
+                </div>
+                <div>
+                    <div class="text-muted small">Top Category</div>
+                    <div class="fs-5 fw-bold">@Model.TopCategory</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row g-3 mb-4">
+    <!-- Doughnut Chart -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0 pt-3 pb-0">
+                <h6 class="fw-semibold mb-0"><i class="fas fa-chart-pie me-2 text-primary"></i>Spending by Category</h6>
+                <small class="text-muted">This month</small>
+            </div>
+            <div class="card-body d-flex align-items-center justify-content-center">
+                @if (!categoryNames.Any())
+                {
+                    <div class="text-center text-muted py-5">
+                        <i class="fas fa-inbox fs-1 mb-2 d-block"></i>
+                        No expenses this month
+                    </div>
+                }
+                else
+                {
+                    <canvas id="doughnutChart" height="220"></canvas>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Line Chart -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0 pt-3 pb-0">
+                <h6 class="fw-semibold mb-0"><i class="fas fa-chart-line me-2 text-success"></i>Daily Spending Trend</h6>
+                <small class="text-muted">This month</small>
+            </div>
+            <div class="card-body">
+                <canvas id="lineChart" height="120"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Transactions -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center pt-3">
+        <h6 class="fw-semibold mb-0"><i class="fas fa-clock me-2 text-secondary"></i>Recent Transactions</h6>
+        <a asp-controller="Expense" asp-action="Index" class="btn btn-sm btn-outline-primary">View All</a>
+    </div>
+    <div class="card-body p-0">
+        @if (!Model.RecentExpenses.Any())
+        {
+            <div class="text-center text-muted py-5">
+                <i class="fas fa-receipt fs-1 mb-2 d-block"></i>
+                No expenses yet. <a asp-controller="Expense" asp-action="Create">Add your first expense!</a>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Title</th>
+                            <th>Category</th>
+                            <th>Date</th>
+                            <th class="text-end">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var expense in Model.RecentExpenses)
+                        {
+                            <tr>
+                                <td class="fw-medium">@expense.Title</td>
+                                <td>
+                                    <span class="badge rounded-pill"
+                                          style="background-color:@expense.Category.Color">
+                                        <i class="@expense.Category.Icon me-1"></i>@expense.Category.Name
+                                    </span>
+                                </td>
+                                <td class="text-muted small">@expense.Date.ToString("dd MMM yyyy")</td>
+                                <td class="text-end fw-semibold text-danger">PKR @expense.Amount.ToString("N2")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    // Doughnut Chart
+    @if (categoryNames.Any())
+    {
+        <text>
+        const dCtx = document.getElementById('doughnutChart');
+        new Chart(dCtx, {
+            type: 'doughnut',
+            data: {
+                labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(categoryNames)),
+                datasets: [{
+                    data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(categoryTotals)),
+                    backgroundColor: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(categoryColors)),
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom', labels: { boxWidth: 12 } }
+                },
+                cutout: '65%'
+            }
+        });
+        </text>
+    }
+
+    // Line Chart
+    const lCtx = document.getElementById('lineChart');
+    new Chart(lCtx, {
+        type: 'line',
+        data: {
+            labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(dailyLabels)),
+            datasets: [{
+                label: 'PKR Spent',
+                data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(dailyTotals)),
+                borderColor: '#2ecc71',
+                backgroundColor: 'rgba(46,204,113,0.1)',
+                borderWidth: 2,
+                pointRadius: 3,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true, ticks: { callback: v => 'PKR ' + v.toLocaleString() } },
+                x: { ticks: { maxTicksLimit: 10 } }
+            },
+            plugins: { legend: { display: false } }
+        }
+    });
+</script>
+}
