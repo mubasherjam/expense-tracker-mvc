@@ -6,11 +6,11 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ── Database ──────────────────────────────────────────────────────────────────
+// ── Database
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// ── Identity ──────────────────────────────────────────────────────────────────
+// ── Identity 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
     options.Password.RequireDigit = true;
@@ -22,7 +22,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
 
-// ── Auth cookie ───────────────────────────────────────────────────────────────
+// ── Auth cookie 
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Account/Login";
@@ -30,7 +30,7 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.AccessDeniedPath = "/Account/Login";
 });
 
-// ── App Services ──────────────────────────────────────────────────────────────
+// ── App Services 
 builder.Services.AddScoped<ExpenseService>();
 builder.Services.AddScoped<ReportService>();
 
@@ -38,7 +38,7 @@ builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
-// ── Middleware ────────────────────────────────────────────────────────────────
+// ── Middleware
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -55,7 +55,7 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Dashboard}/{action=Index}/{id?}");
 
-// ── Auto-apply migrations on startup ─────────────────────────────────────────
+// ── Auto-apply migrations on startup 
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
