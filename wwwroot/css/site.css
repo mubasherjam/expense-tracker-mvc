@@ -32,7 +32,7 @@
     margin-left: var(--sidebar-width);
     transition: margin-left 0.25s ease;
     min-height: 100vh;
-    background: #f0f2f5;
+    background: var(--bs-tertiary-bg);
 }
 
 #page-content-wrapper.expanded {
@@ -81,7 +81,7 @@
     font-size: 0.82rem;
     text-transform: uppercase;
     letter-spacing: 0.03em;
-    color: #6b7280;
+    color: var(--bs-secondary-color);
 }
 
 /* ── Buttons ────────────────────────────────────────────────── */
@@ -119,6 +119,23 @@
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: #f1f1f1; }
 ::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 3px; }
+
+/* ── Dark mode tweaks ───────────────────────────────────────── */
+[data-bs-theme="dark"] {
+    --sidebar-bg: #0f1621;
+}
+
+[data-bs-theme="dark"] .bg-white {
+    background-color: var(--bs-body-bg) !important;
+}
+
+[data-bs-theme="dark"] .table-light {
+    --bs-table-bg: var(--bs-tertiary-bg);
+    --bs-table-color: var(--bs-body-color);
+}
+
+[data-bs-theme="dark"] ::-webkit-scrollbar-track { background: #1f2937; }
+[data-bs-theme="dark"] ::-webkit-scrollbar-thumb { background: #4b5563; }
 
 /* ── Responsive ─────────────────────────────────────────────── */
 @media (max-width: 768px) {

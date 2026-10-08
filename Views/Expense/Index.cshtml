@@ -91,7 +91,7 @@
                                         <i class="fas fa-edit"></i>
                                     </a>
                                     <form asp-action="Delete" asp-route-id="@expense.Id" method="post" class="d-inline"
-                                          onsubmit="return confirm('Delete this expense?')">
+                                          data-confirm="Delete the expense '@expense.Title'? This cannot be undone.">
                                         @Html.AntiForgeryToken()
                                         <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
                                             <i class="fas fa-trash"></i>

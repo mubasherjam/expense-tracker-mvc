@@ -75,6 +75,11 @@ namespace ExpenseTracker.Services
                 .Where(e => e.Date.Month == now.Month && e.Date.Year == now.Year)
                 .ToList();
 
+            var lastMonth = now.AddMonths(-1);
+            var totalLastMonth = allExpenses
+                .Where(e => e.Date.Month == lastMonth.Month && e.Date.Year == lastMonth.Year)
+                .Sum(e => e.Amount);
+
             var categoryBreakdown = thisMonthExpenses
                 .GroupBy(e => e.Category)
                 .Select(g => new CategorySpendingItem
@@ -103,6 +108,7 @@ namespace ExpenseTracker.Services
             return new DashboardViewModel
             {
                 TotalThisMonth = thisMonthExpenses.Sum(e => e.Amount),
+                TotalLastMonth = totalLastMonth,
                 TotalThisYear = allExpenses.Where(e => e.Date.Year == now.Year).Sum(e => e.Amount),
                 TotalAllTime = allExpenses.Sum(e => e.Amount),
                 ExpenseCountThisMonth = thisMonthExpenses.Count,

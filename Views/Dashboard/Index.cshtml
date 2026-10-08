@@ -20,6 +20,19 @@
                     <div class="text-muted small">This Month</div>
                     <div class="fs-5 fw-bold">PKR @Model.TotalThisMonth.ToString("N0")</div>
                     <div class="text-muted small">@Model.ExpenseCountThisMonth transactions</div>
+                    @if (Model.MonthChangePercent is decimal change)
+                    {
+                        // spending going up is bad (red), going down is good (green)
+                        var cls = change > 0 ? "text-danger" : change < 0 ? "text-success" : "text-muted";
+                        var icon = change > 0 ? "fa-arrow-up" : change < 0 ? "fa-arrow-down" : "fa-minus";
+                        <div class="small @cls">
+                            <i class="fas @icon me-1"></i>@Math.Abs(change)% vs last month
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="small text-muted">No data last month</div>
+                    }
                 </div>
             </div>
         </div>
