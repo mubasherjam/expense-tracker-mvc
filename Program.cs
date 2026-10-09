@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ── Database
+// ── Database connection
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -30,7 +30,7 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.AccessDeniedPath = "/Account/Login";
 });
 
-// ── App Services 
+// ── App Services Dependency Injection
 builder.Services.AddScoped<ExpenseService>();
 builder.Services.AddScoped<ReportService>();
 
@@ -38,7 +38,7 @@ builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
-// ── Middleware
+// ── Middleware for environment-specific error handling and security
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
