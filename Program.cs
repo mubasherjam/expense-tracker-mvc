@@ -33,6 +33,9 @@ builder.Services.ConfigureApplicationCookie(options =>
 // ── App Services Dependency Injection
 builder.Services.AddScoped<ExpenseService>();
 builder.Services.AddScoped<ReportService>();
+builder.Services.AddScoped<BudgetService>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<CurrencyService>();
 
 builder.Services.AddControllersWithViews();
 

@@ -23,8 +23,14 @@ namespace ExpenseTracker.Controllers
             _userManager = userManager;
         }
 
-        public async Task<IActionResult> Index(string? search, int? categoryId, string? month)
+        public async Task<IActionResult> Index(string? search, int? categoryId, string? month, string? range)
         {
+            // Quick ranges: this-month / last-month / this-year (this-year is handled below)
+            var today = DateTime.Today;
+            if (range == "this-month") month = today.ToString("yyyy-MM");
+            else if (range == "last-month") month = today.AddMonths(-1).ToString("yyyy-MM");
+            if (range != "this-year" && range != null && range != "this-month" && range != "last-month") range = null;
+
             var userId = _userManager.GetUserId(User)!;
             var expenses = await _expenseService.GetAllByUserAsync(userId);
 
@@ -39,8 +45,13 @@ namespace ExpenseTracker.Controllers
             if (!string.IsNullOrWhiteSpace(month) && DateTime.TryParse(month + "-01", out var monthDate))
                 expenses = expenses.Where(e => e.Date.Month == monthDate.Month && e.Date.Year == monthDate.Year).ToList();
 
+            if (range == "this-year")
+                expenses = expenses.Where(e => e.Date.Year == today.Year).ToList();
+
             var categories = await _expenseService.GetCategoriesAsync(userId);
-            ViewBag.Categories = new SelectList(categories, "Id", "Name");
+            ViewBag.Categories = new SelectList(categories, "Id", "Name", categoryId);
+            ViewBag.CategoryName = categoryId.HasValue ? categories.FirstOrDefault(c => c.Id == categoryId)?.Name : null;
+            ViewBag.Range = range;
             ViewBag.Search = search;
             ViewBag.SelectedCategory = categoryId;
             ViewBag.Month = month;
@@ -63,12 +74,20 @@ namespace ExpenseTracker.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(ExpenseViewModel model)
+        public async Task<IActionResult> Create(ExpenseViewModel model, string? returnUrl = null)
         {
             var userId = _userManager.GetUserId(User)!;
 
             if (!ModelState.IsValid)
             {
+                // Quick-add modal posts from any page: report the problem there instead of a full form page
+                if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                {
+                    TempData["Error"] = "Could not add expense: " +
+                        string.Join(" ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+                    return Redirect(returnUrl);
+                }
+
                 model.Categories = new SelectList(await _expenseService.GetCategoriesAsync(userId), "Id", "Name");
                 return View(model);
             }
@@ -85,6 +104,8 @@ namespace ExpenseTracker.Controllers
 
             await _expenseService.AddAsync(expense);
             TempData["Success"] = "Expense added successfully!";
+            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                return Redirect(returnUrl);
             return RedirectToAction(nameof(Index));
         }
 

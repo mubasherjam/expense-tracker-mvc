@@ -1,0 +1,90 @@
+@model ExpenseTracker.Models.Category
+@{
+    var icons = new[]
+    {
+        "fa-utensils", "fa-coffee", "fa-pizza-slice", "fa-shopping-cart", "fa-shopping-bag", "fa-car", "fa-bus", "fa-gas-pump",
+        "fa-plane", "fa-home", "fa-bolt", "fa-wifi", "fa-mobile-alt", "fa-tv", "fa-film", "fa-gamepad",
+        "fa-music", "fa-heartbeat", "fa-pills", "fa-dumbbell", "fa-graduation-cap", "fa-book", "fa-baby", "fa-paw",
+        "fa-gift", "fa-tshirt", "fa-cut", "fa-tools", "fa-credit-card", "fa-piggy-bank", "fa-briefcase", "fa-ellipsis-h"
+    };
+    var colors = new[] { "#e74c3c", "#e67e22", "#f39c12", "#2ecc71", "#1abc9c", "#3498db", "#2980b9", "#9b59b6", "#e84393", "#95a5a6" };
+    var icon = string.IsNullOrWhiteSpace(Model.Icon) ? "fas fa-tag" : Model.Icon;
+    var color = string.IsNullOrWhiteSpace(Model.Color) ? "#3498db" : Model.Color;
+}
+
+<div class="d-flex align-items-center gap-3 mb-3">
+    <div class="cat-preview" id="cat-preview" style="background-color:@color;color:@ColorHelper.TextOn(color)">
+        <i id="icon-el" class="@icon" aria-hidden="true"></i>
+    </div>
+    <div class="small text-muted">Live preview of how the category will look.</div>
+</div>
+
+<div class="mb-3">
+    <label class="form-label fw-medium" for="color-input">Color</label>
+    <div class="d-flex flex-wrap align-items-center gap-2" id="swatches">
+        @foreach (var c in colors)
+        {
+            <button type="button" class="swatch @(string.Equals(c, color, StringComparison.OrdinalIgnoreCase) ? "selected" : "")"
+                    style="background-color:@c" data-color="@c" aria-label="Use color @c"></button>
+        }
+        <input asp-for="Color" id="color-input" type="color" class="form-control form-control-color ms-1"
+               style="width:44px;height:34px" value="@color" title="Custom color" />
+    </div>
+</div>
+
+<div class="mb-4">
+    <label class="form-label fw-medium" for="icon-search">Icon</label>
+    <input type="search" id="icon-search" class="form-control mb-2" placeholder="Filter icons…" />
+    <div class="icon-grid" id="icon-grid" role="listbox" aria-label="Icons">
+        @foreach (var i in icons)
+        {
+            var cls = "fas " + i;
+            <button type="button" class="icon-option @(cls == icon ? "selected" : "")" data-icon="@cls" title="@i.Replace("fa-", "")"
+                    role="option" aria-label="@i.Replace("fa-", "")">
+                <i class="@cls" aria-hidden="true"></i>
+            </button>
+        }
+    </div>
+    <input asp-for="Icon" type="hidden" id="icon-input" value="@icon" />
+    <span asp-validation-for="Icon" class="text-danger small"></span>
+</div>
+
+<script>
+    (function () {
+        const preview = document.getElementById('cat-preview');
+        const iconEl = document.getElementById('icon-el');
+        const iconInput = document.getElementById('icon-input');
+        const colorInput = document.getElementById('color-input');
+
+        // Same luminance rule as ColorHelper.TextOn on the server
+        function textOn(hex) {
+            const n = parseInt(hex.replace('#', ''), 16);
+            const lin = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+            const lum = 0.2126 * lin((n >> 16) & 255) + 0.7152 * lin((n >> 8) & 255) + 0.0722 * lin(n & 255);
+            return lum > 0.4 ? '#111827' : '#ffffff';
+        }
+        function setColor(hex) {
+            colorInput.value = hex;
+            preview.style.backgroundColor = hex;
+            preview.style.color = textOn(hex);
+            document.querySelectorAll('#swatches .swatch').forEach(s =>
+                s.classList.toggle('selected', s.dataset.color.toLowerCase() === hex.toLowerCase()));
+        }
+        function setIcon(cls) {
+            iconInput.value = cls;
+            iconEl.className = cls;
+            document.querySelectorAll('#icon-grid .icon-option').forEach(b =>
+                b.classList.toggle('selected', b.dataset.icon === cls));
+        }
+
+        document.querySelectorAll('#swatches .swatch').forEach(b => b.addEventListener('click', () => setColor(b.dataset.color)));
+        colorInput.addEventListener('input', () => setColor(colorInput.value));
+        document.querySelectorAll('#icon-grid .icon-option').forEach(b => b.addEventListener('click', () => setIcon(b.dataset.icon)));
+        document.getElementById('icon-search').addEventListener('input', function () {
+            const q = this.value.trim().toLowerCase();
+            document.querySelectorAll('#icon-grid .icon-option').forEach(b => {
+                b.classList.toggle('d-none', q && !b.title.toLowerCase().includes(q));
+            });
+        });
+    })();
+</script>

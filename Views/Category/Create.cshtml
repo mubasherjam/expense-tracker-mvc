@@ -21,28 +21,7 @@
                         <span asp-validation-for="Name" class="text-danger small"></span>
                     </div>
 
-                    <div class="mb-3">
-                        <label asp-for="Color" class="form-label fw-medium">Color</label>
-                        <div class="d-flex align-items-center gap-3">
-                            <input asp-for="Color" type="color" class="form-control form-control-color"
-                                   style="width:60px;height:40px" value="#3498db" />
-                            <small class="text-muted">Pick a color for the category badge</small>
-                        </div>
-                    </div>
-
-                    <div class="mb-4">
-                        <label asp-for="Icon" class="form-label fw-medium">Icon <span class="text-muted">(Font Awesome class)</span></label>
-                        <div class="input-group">
-                            <span class="input-group-text" id="icon-preview">
-                                <i id="icon-el" class="fas fa-tag"></i>
-                            </span>
-                            <input asp-for="Icon" class="form-control" id="icon-input"
-                                   placeholder="fas fa-tag" value="fas fa-tag" />
-                        </div>
-                        <small class="text-muted">
-                            Find icons at <a href="https://fontawesome.com/icons" target="_blank">fontawesome.com/icons</a>
-                        </small>
-                    </div>
+                    <partial name="_IconColorPicker" model="Model" />
 
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-primary">
@@ -57,9 +36,5 @@
 </div>
 
 @section Scripts {
-<script>
-    document.getElementById('icon-input').addEventListener('input', function () {
-        document.getElementById('icon-el').className = this.value;
-    });
-</script>
+    <partial name="_ValidationScriptsPartial" />
 }

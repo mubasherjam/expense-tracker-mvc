@@ -11,6 +11,7 @@ namespace ExpenseTracker.Data
 
         public DbSet<Category> Categories { get; set; }
         public DbSet<Expense> Expenses { get; set; }
+        public DbSet<Budget> Budgets { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -37,6 +38,23 @@ namespace ExpenseTracker.Data
                 .HasForeignKey(c => c.UserId)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // One budget per user per category
+            builder.Entity<Budget>()
+                .HasIndex(b => new { b.UserId, b.CategoryId })
+                .IsUnique();
+
+            builder.Entity<Budget>()
+                .HasOne(b => b.Category)
+                .WithMany()
+                .HasForeignKey(b => b.CategoryId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<Budget>()
+                .HasOne(b => b.User)
+                .WithMany(u => u.Budgets)
+                .HasForeignKey(b => b.UserId)
+                .OnDelete(DeleteBehavior.NoAction);
 
             // Seed default categories (no UserId = global)
             builder.Entity<Category>().HasData(

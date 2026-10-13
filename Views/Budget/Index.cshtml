@@ -1,0 +1,85 @@
+@model List<ExpenseTracker.Models.ViewModels.BudgetProgressItem>
+@{
+    ViewData["Title"] = "Budgets";
+    var withBudget = Model.Where(b => b.HasBudget).ToList();
+    var totalBudget = withBudget.Sum(b => b.Budget);
+    var totalSpent = withBudget.Sum(b => b.Spent);
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h5 class="fw-semibold mb-0">Monthly budgets</h5>
+        <small class="text-muted">@DateTime.Today.ToString("MMMM yyyy") · set a limit per category, leave empty or 0 to remove it</small>
+    </div>
+</div>
+
+@if (withBudget.Any())
+{
+    <div class="card border-0 mb-4">
+        <div class="card-body d-flex flex-wrap gap-4">
+            <div>
+                <div class="text-muted small">Total budgeted</div>
+                <div class="fs-5 fw-bold">@Cur.Format(totalBudget, 0)</div>
+            </div>
+            <div>
+                <div class="text-muted small">Spent in budgeted categories</div>
+                <div class="fs-5 fw-bold">@Cur.Format(totalSpent, 0)</div>
+            </div>
+            <div>
+                <div class="text-muted small">Remaining</div>
+                <div class="fs-5 fw-bold @(totalBudget - totalSpent < 0 ? "text-negative" : "text-positive")">@Cur.Format(totalBudget - totalSpent, 0)</div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card border-0 mb-4">
+        <partial name="_EmptyState" model="@(new EmptyStateModel("fa-bullseye", "No budgets yet", "Set a monthly limit on a category below and track it on your dashboard."))" />
+    </div>
+}
+
+<div class="row g-3">
+    @foreach (var b in Model)
+    {
+        <div class="col-md-6 col-xl-4">
+            <div class="card border-0 h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center"
+                             style="width:40px;height:40px;background-color:@b.Color;color:@ColorHelper.TextOn(b.Color);flex-shrink:0">
+                            <i class="@b.Icon" aria-hidden="true"></i>
+                        </div>
+                        <div class="flex-grow-1 min-w-0">
+                            <div class="fw-semibold text-truncate">@b.CategoryName</div>
+                            <div class="small text-muted">Spent @Cur.Format(b.Spent, 0)</div>
+                        </div>
+                        @if (b.HasBudget)
+                        {
+                            <span class="small fw-semibold @(b.State == "over" ? "text-negative" : b.State == "warning" ? "text-caution" : "text-positive")">@b.Percent%</span>
+                        }
+                    </div>
+
+                    @if (b.HasBudget)
+                    {
+                        <div class="progress mb-3" style="height:8px" role="progressbar" aria-label="@b.CategoryName budget used"
+                             aria-valuenow="@Math.Min(b.Percent, 100)" aria-valuemin="0" aria-valuemax="100">
+                            <div class="progress-bar state-@b.State" style="width:@(Math.Min(b.Percent, 100))%"></div>
+                        </div>
+                    }
+
+                    <form asp-action="Save" method="post" class="d-flex gap-2">
+                        <input type="hidden" name="categoryId" value="@b.CategoryId" />
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text">@Cur.Code</span>
+                            <input type="number" name="amount" min="0" step="0.01" class="form-control"
+                                   value="@(b.HasBudget ? b.Budget.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) : "")"
+                                   placeholder="No budget" aria-label="Monthly budget for @b.CategoryName" />
+                        </div>
+                        <button type="submit" class="btn btn-sm btn-primary">Save</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    }
+</div>

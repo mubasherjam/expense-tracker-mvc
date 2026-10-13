@@ -1,0 +1,17 @@
+@* Usage: <partial name="_EmptyState" model="@(new EmptyStateModel("fa-receipt", "No expenses yet", "Add your first expense to get started.", "Add expense", Url.Action("Create", "Expense")))" /> *@
+@model EmptyStateModel
+
+<div class="empty-state">
+    <div class="empty-icon"><i class="fas @Model.Icon" aria-hidden="true"></i></div>
+    <h6>@Model.Title</h6>
+    @if (!string.IsNullOrEmpty(Model.Text))
+    {
+        <p class="small mb-3">@Model.Text</p>
+    }
+    @if (!string.IsNullOrEmpty(Model.ActionText) && !string.IsNullOrEmpty(Model.ActionUrl))
+    {
+        <a href="@Model.ActionUrl" class="btn btn-primary btn-sm">
+            <i class="fas fa-plus me-1" aria-hidden="true"></i>@Model.ActionText
+        </a>
+    }
+</div>

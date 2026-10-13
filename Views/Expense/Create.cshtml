@@ -25,7 +25,7 @@
                         <div class="col-sm-6">
                             <label asp-for="Amount" class="form-label fw-medium"></label>
                             <div class="input-group">
-                                <span class="input-group-text fw-medium">PKR</span>
+                                <span class="input-group-text fw-medium">@Cur.Code</span>
                                 <input asp-for="Amount" class="form-control" placeholder="0.00" step="0.01" min="0.01" />
                             </div>
                             <span asp-validation-for="Amount" class="text-danger small"></span>

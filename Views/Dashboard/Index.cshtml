@@ -6,98 +6,139 @@
     var categoryColors = Model.CategoryBreakdown.Select(c => c.Color).ToList();
     var dailyLabels    = Model.DailySpending.Select(d => d.Day).ToList();
     var dailyTotals    = Model.DailySpending.Select(d => (double)d.Total).ToList();
+    var hasAnyExpense  = Model.TotalAllTime > 0;
 }
+
+<div data-auto-tour></div>
 
 <!-- Summary Cards -->
 <div class="row g-3 mb-4">
-    <div class="col-sm-6 col-xl-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body d-flex align-items-center gap-3">
-                <div class="icon-box bg-primary-subtle rounded-3 p-3">
-                    <i class="fas fa-calendar-alt fs-4 text-primary"></i>
-                </div>
+    <!-- Hero: this month -->
+    <div class="col-xl-6">
+        <div class="card hero-card border-0 h-100">
+            <div class="card-body p-4 d-flex flex-column flex-sm-row justify-content-between gap-3">
                 <div>
-                    <div class="text-muted small">This Month</div>
-                    <div class="fs-5 fw-bold">PKR @Model.TotalThisMonth.ToString("N0")</div>
-                    <div class="text-muted small">@Model.ExpenseCountThisMonth transactions</div>
-                    @if (Model.MonthChangePercent is decimal change)
-                    {
-                        // spending going up is bad (red), going down is good (green)
-                        var cls = change > 0 ? "text-danger" : change < 0 ? "text-success" : "text-muted";
-                        var icon = change > 0 ? "fa-arrow-up" : change < 0 ? "fa-arrow-down" : "fa-minus";
-                        <div class="small @cls">
-                            <i class="fas @icon me-1"></i>@Math.Abs(change)% vs last month
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="small text-muted">No data last month</div>
-                    }
+                    <div class="text-muted small text-uppercase fw-semibold mb-1">This month</div>
+                    <div class="hero-amount">
+                        <span class="hero-currency">@Cur.Code</span>@Model.TotalThisMonth.ToString("N0")
+                    </div>
+                    <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
+                        <span class="text-muted small">@Model.ExpenseCountThisMonth transactions</span>
+                        @if (Model.MonthChangePercent is decimal change)
+                        {
+                            var icon = change > 0 ? "fa-arrow-up" : change < 0 ? "fa-arrow-down" : "fa-minus";
+                            <span class="hero-delta" title="Compared with last month (@Cur.Format(Model.TotalLastMonth, 0))">
+                                <i class="fas @icon me-1" aria-hidden="true"></i>@Math.Abs(change)% vs last month
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="hero-delta">No data last month</span>
+                        }
+                    </div>
+                </div>
+                <div class="flex-grow-1" style="min-width:140px;max-width:260px;height:80px;align-self:flex-end">
+                    <canvas id="sparkline" aria-label="Daily spending this month" role="img"></canvas>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-sm-6 col-xl-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body d-flex align-items-center gap-3">
-                <div class="icon-box bg-success-subtle rounded-3 p-3">
-                    <i class="fas fa-chart-line fs-4 text-success"></i>
+
+    <div class="col-sm-6 col-xl-2">
+        <div class="card border-0 h-100 card-hover">
+            <div class="card-body">
+                <div class="icon-box bg-success-subtle rounded-3 mb-2" style="width:40px;height:40px">
+                    <i class="fas fa-chart-line text-success" aria-hidden="true"></i>
                 </div>
-                <div>
-                    <div class="text-muted small">This Year</div>
-                    <div class="fs-5 fw-bold">PKR @Model.TotalThisYear.ToString("N0")</div>
-                </div>
+                <div class="text-muted small">This Year</div>
+                <div class="fw-bold fs-5">@Cur.Format(Model.TotalThisYear, 0)</div>
             </div>
         </div>
     </div>
-    <div class="col-sm-6 col-xl-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body d-flex align-items-center gap-3">
-                <div class="icon-box bg-warning-subtle rounded-3 p-3">
-                    <i class="fas fa-coins fs-4 text-warning"></i>
+    <div class="col-sm-6 col-xl-2">
+        <div class="card border-0 h-100 card-hover">
+            <div class="card-body">
+                <div class="icon-box bg-warning-subtle rounded-3 mb-2" style="width:40px;height:40px">
+                    <i class="fas fa-coins text-warning" aria-hidden="true"></i>
                 </div>
-                <div>
-                    <div class="text-muted small">All Time</div>
-                    <div class="fs-5 fw-bold">PKR @Model.TotalAllTime.ToString("N0")</div>
-                </div>
+                <div class="text-muted small">All Time</div>
+                <div class="fw-bold fs-5">@Cur.Format(Model.TotalAllTime, 0)</div>
             </div>
         </div>
     </div>
-    <div class="col-sm-6 col-xl-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body d-flex align-items-center gap-3">
-                <div class="icon-box bg-danger-subtle rounded-3 p-3">
-                    <i class="fas fa-fire fs-4 text-danger"></i>
+    <div class="col-12 col-xl-2">
+        <div class="card border-0 h-100 card-hover">
+            <div class="card-body">
+                <div class="icon-box bg-danger-subtle rounded-3 mb-2" style="width:40px;height:40px">
+                    <i class="fas fa-fire text-danger" aria-hidden="true"></i>
                 </div>
-                <div>
-                    <div class="text-muted small">Top Category</div>
-                    <div class="fs-5 fw-bold">@Model.TopCategory</div>
-                </div>
+                <div class="text-muted small">Top Category</div>
+                <div class="fw-bold fs-5 text-truncate">@Model.TopCategory</div>
             </div>
         </div>
     </div>
 </div>
 
+@if (Model.Budgets.Any())
+{
+    <!-- Budget progress -->
+    <div class="card border-0 mb-4">
+        <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center pt-3">
+            <h6 class="fw-semibold mb-0"><i class="fas fa-bullseye me-2 text-primary" aria-hidden="true"></i>Budgets this month</h6>
+            <a asp-controller="Budget" asp-action="Index" class="btn btn-sm btn-outline-primary">Manage</a>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                @foreach (var b in Model.Budgets.Take(6))
+                {
+                    <div class="col-sm-6 col-xl-4">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="ring state-@b.State" style="--pct:@Math.Min(b.Percent, 100)" data-label="@(b.Percent)%"
+                                 role="img" aria-label="@b.CategoryName: @b.Percent percent of budget used"></div>
+                            <div class="min-w-0">
+                                <div class="fw-semibold text-truncate">@b.CategoryName</div>
+                                <div class="small text-muted">@Cur.Format(b.Spent, 0) of @Cur.Format(b.Budget, 0)</div>
+                                @if (b.State == "over")
+                                {
+                                    <div class="small text-negative fw-medium">Over by @Cur.Format(-b.Remaining, 0)</div>
+                                }
+                                else if (b.State == "warning")
+                                {
+                                    <div class="small text-caution fw-medium">@Cur.Format(b.Remaining, 0) left</div>
+                                }
+                                else
+                                {
+                                    <div class="small text-positive">@Cur.Format(b.Remaining, 0) left</div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
 <!-- Charts Row -->
 <div class="row g-3 mb-4">
     <!-- Doughnut Chart -->
     <div class="col-lg-4">
-        <div class="card border-0 shadow-sm h-100">
+        <div class="card border-0 h-100">
             <div class="card-header bg-white border-0 pt-3 pb-0">
-                <h6 class="fw-semibold mb-0"><i class="fas fa-chart-pie me-2 text-primary"></i>Spending by Category</h6>
+                <h6 class="fw-semibold mb-0"><i class="fas fa-chart-pie me-2 text-primary" aria-hidden="true"></i>Spending by Category</h6>
                 <small class="text-muted">This month</small>
             </div>
             <div class="card-body d-flex align-items-center justify-content-center">
                 @if (!categoryNames.Any())
                 {
-                    <div class="text-center text-muted py-5">
-                        <i class="fas fa-inbox fs-1 mb-2 d-block"></i>
-                        No expenses this month
-                    </div>
+                    <partial name="_EmptyState" model="@(new EmptyStateModel("fa-chart-pie", "No spending yet this month", "Your category breakdown will appear here."))" />
                 }
                 else
                 {
-                    <canvas id="doughnutChart" height="220"></canvas>
+                    <div class="w-100">
+                        <div class="skeleton"></div>
+                        <canvas id="doughnutChart" height="220" class="d-none" role="img" aria-label="Spending by category"></canvas>
+                    </div>
                 }
             </div>
         </div>
@@ -105,31 +146,36 @@
 
     <!-- Line Chart -->
     <div class="col-lg-8">
-        <div class="card border-0 shadow-sm h-100">
+        <div class="card border-0 h-100">
             <div class="card-header bg-white border-0 pt-3 pb-0">
-                <h6 class="fw-semibold mb-0"><i class="fas fa-chart-line me-2 text-success"></i>Daily Spending Trend</h6>
+                <h6 class="fw-semibold mb-0"><i class="fas fa-chart-line me-2 text-success" aria-hidden="true"></i>Daily Spending Trend</h6>
                 <small class="text-muted">This month</small>
             </div>
             <div class="card-body">
-                <canvas id="lineChart" height="120"></canvas>
+                @if (Model.ExpenseCountThisMonth == 0)
+                {
+                    <partial name="_EmptyState" model="@(new EmptyStateModel("fa-chart-line", "Nothing to chart yet", "Add an expense and your daily trend shows up here.", "Add expense", Url.Action("Create", "Expense")))" />
+                }
+                else
+                {
+                    <div class="skeleton"></div>
+                    <canvas id="lineChart" height="120" class="d-none" role="img" aria-label="Daily spending this month"></canvas>
+                }
             </div>
         </div>
     </div>
 </div>
 
 <!-- Recent Transactions -->
-<div class="card border-0 shadow-sm">
+<div class="card border-0">
     <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center pt-3">
-        <h6 class="fw-semibold mb-0"><i class="fas fa-clock me-2 text-secondary"></i>Recent Transactions</h6>
+        <h6 class="fw-semibold mb-0"><i class="fas fa-clock me-2 text-secondary" aria-hidden="true"></i>Recent Transactions</h6>
         <a asp-controller="Expense" asp-action="Index" class="btn btn-sm btn-outline-primary">View All</a>
     </div>
     <div class="card-body p-0">
         @if (!Model.RecentExpenses.Any())
         {
-            <div class="text-center text-muted py-5">
-                <i class="fas fa-receipt fs-1 mb-2 d-block"></i>
-                No expenses yet. <a asp-controller="Expense" asp-action="Create">Add your first expense!</a>
-            </div>
+            <partial name="_EmptyState" model="@(new EmptyStateModel("fa-receipt", "No expenses yet", "Track your first expense and it will show up here.", "Add your first expense", Url.Action("Create", "Expense")))" />
         }
         else
         {
@@ -137,10 +183,10 @@
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th>Title</th>
-                            <th>Category</th>
-                            <th>Date</th>
-                            <th class="text-end">Amount</th>
+                            <th scope="col">Title</th>
+                            <th scope="col">Category</th>
+                            <th scope="col" class="d-none d-sm-table-cell">Date</th>
+                            <th scope="col" class="text-end">Amount</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -149,13 +195,13 @@
                             <tr>
                                 <td class="fw-medium">@expense.Title</td>
                                 <td>
-                                    <span class="badge rounded-pill"
-                                          style="background-color:@expense.Category.Color">
-                                        <i class="@expense.Category.Icon me-1"></i>@expense.Category.Name
+                                    <span class="badge rounded-pill cat-badge"
+                                          style="background-color:@expense.Category.Color;color:@ColorHelper.TextOn(expense.Category.Color)">
+                                        <i class="@expense.Category.Icon me-1" aria-hidden="true"></i>@expense.Category.Name
                                     </span>
                                 </td>
-                                <td class="text-muted small">@expense.Date.ToString("dd MMM yyyy")</td>
-                                <td class="text-end fw-semibold text-danger">PKR @expense.Amount.ToString("N2")</td>
+                                <td class="text-muted small d-none d-sm-table-cell">@expense.Date.ToString("dd MMM yyyy")</td>
+                                <td class="text-end fw-semibold text-negative">@Cur.Format(expense.Amount)</td>
                             </tr>
                         }
                     </tbody>
@@ -167,57 +213,95 @@
 
 @section Scripts {
 <script>
-    // Doughnut Chart
-    @if (categoryNames.Any())
-    {
+    document.addEventListener('DOMContentLoaded', function () {
+        const labels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(dailyLabels));
+        const daily = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(dailyTotals));
+
+        // Sparkline inside the hero card
+        const sCtx = document.getElementById('sparkline');
+        if (sCtx) {
+            new Chart(sCtx, {
+                type: 'line',
+                data: { labels, datasets: [{ data: daily, borderColor: 'rgba(255,255,255,.95)', backgroundColor: 'rgba(255,255,255,.18)',
+                                             borderWidth: 2, pointRadius: 0, fill: true, tension: 0.4 }] },
+                options: {
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                    scales: { x: { display: false }, y: { display: false, beginAtZero: true } }
+                }
+            });
+        }
+
+        @if (categoryNames.Any())
+        {
         <text>
         const dCtx = document.getElementById('doughnutChart');
-        new Chart(dCtx, {
+        const doughnut = new Chart(dCtx, {
             type: 'doughnut',
             data: {
                 labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(categoryNames)),
                 datasets: [{
                     data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(categoryTotals)),
                     backgroundColor: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(categoryColors)),
-                    borderWidth: 2,
-                    borderColor: '#fff'
+                    borderWidth: 2
                 }]
             },
             options: {
                 responsive: true,
                 plugins: {
-                    legend: { position: 'bottom', labels: { boxWidth: 12 } }
+                    legend: { position: 'bottom', labels: { boxWidth: 12 } },
+                    tooltip: { callbacks: { label: ctx => ' ' + ctx.label + ': ' + formatMoney(ctx.parsed, 0) } }
                 },
                 cutout: '65%'
             }
         });
+        revealChart(dCtx);
+        registerChart(doughnut, (c, t) => {
+            c.data.datasets[0].borderColor = t.surface;
+            c.options.plugins.legend.labels.color = t.text;
+        });
         </text>
-    }
+        }
 
-    // Line Chart
-    const lCtx = document.getElementById('lineChart');
-    new Chart(lCtx, {
-        type: 'line',
-        data: {
-            labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(dailyLabels)),
-            datasets: [{
-                label: 'PKR Spent',
-                data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(dailyTotals)),
-                borderColor: '#2ecc71',
-                backgroundColor: 'rgba(46,204,113,0.1)',
-                borderWidth: 2,
-                pointRadius: 3,
-                fill: true,
-                tension: 0.4
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: { beginAtZero: true, ticks: { callback: v => 'PKR ' + v.toLocaleString() } },
-                x: { ticks: { maxTicksLimit: 10 } }
+        @if (Model.ExpenseCountThisMonth > 0)
+        {
+        <text>
+        const lCtx = document.getElementById('lineChart');
+        const line = new Chart(lCtx, {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [{
+                    label: 'Spent',
+                    data: daily,
+                    borderColor: '#2ecc71',
+                    backgroundColor: 'rgba(46,204,113,0.12)',
+                    borderWidth: 2,
+                    pointRadius: 3,
+                    fill: true,
+                    tension: 0.4
+                }]
             },
-            plugins: { legend: { display: false } }
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true, ticks: { callback: v => formatMoney(v, 0) } },
+                    x: { ticks: { maxTicksLimit: 10 } }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: ctx => ' ' + formatMoney(ctx.parsed.y, 2) } }
+                }
+            }
+        });
+        revealChart(lCtx);
+        registerChart(line, (c, t) => {
+            c.options.scales.x.ticks.color = t.text;
+            c.options.scales.y.ticks.color = t.text;
+            c.options.scales.x.grid.color = t.grid;
+            c.options.scales.y.grid.color = t.grid;
+        });
+        </text>
         }
     });
 </script>

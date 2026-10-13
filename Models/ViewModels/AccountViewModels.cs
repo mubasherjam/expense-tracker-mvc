@@ -30,6 +30,9 @@ namespace ExpenseTracker.Models.ViewModels
         [Display(Name = "Full Name")]
         public string FullName { get; set; } = string.Empty;
 
+        [Required]
+        public string Currency { get; set; } = "PKR";
+
         public string Email { get; set; } = string.Empty;
         public DateTime MemberSince { get; set; }
     }

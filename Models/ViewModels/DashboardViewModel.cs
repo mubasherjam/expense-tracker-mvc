@@ -23,7 +23,25 @@ namespace ExpenseTracker.Models.ViewModels
         public List<Expense> RecentExpenses { get; set; } = new();
 
         // Top spending category this month
+        public List<BudgetProgressItem> Budgets { get; set; } = new();
+
         public string TopCategory { get; set; } = "N/A";
+    }
+
+    public class BudgetProgressItem
+    {
+        public int CategoryId { get; set; }
+        public string CategoryName { get; set; } = string.Empty;
+        public string Color { get; set; } = string.Empty;
+        public string Icon { get; set; } = string.Empty;
+        public decimal Budget { get; set; }
+        public decimal Spent { get; set; }
+
+        public bool HasBudget => Budget > 0;
+        public decimal Remaining => Budget - Spent;
+        public int Percent => HasBudget ? (int)Math.Min(999, Math.Round(Spent / Budget * 100)) : 0;
+        // ok below 80%, warning from 80%, over from 100%
+        public string State => !HasBudget ? "none" : Percent >= 100 ? "over" : Percent >= 80 ? "warning" : "ok";
     }
 
     public class CategorySpendingItem

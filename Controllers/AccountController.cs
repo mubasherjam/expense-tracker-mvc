@@ -1,5 +1,6 @@
 using ExpenseTracker.Models;
 using ExpenseTracker.Models.ViewModels;
+using ExpenseTracker.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -88,6 +89,7 @@ namespace ExpenseTracker.Controllers
             return View(new ProfileViewModel
             {
                 FullName = user.FullName,
+                Currency = user.Currency,
                 Email = user.Email ?? string.Empty,
                 MemberSince = user.CreatedAt
             });
@@ -106,7 +108,14 @@ namespace ExpenseTracker.Controllers
             model.MemberSince = user.CreatedAt;
             if (!ModelState.IsValid) return View(model);
 
+            if (!CurrencyService.Supported.Contains(model.Currency))
+            {
+                ModelState.AddModelError(nameof(model.Currency), "Unsupported currency.");
+                return View(model);
+            }
+
             user.FullName = model.FullName.Trim();
+            user.Currency = model.Currency;
             var result = await _userManager.UpdateAsync(user);
             if (result.Succeeded)
             {

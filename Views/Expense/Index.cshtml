@@ -1,100 +1,148 @@
 @model IEnumerable<ExpenseTracker.Models.Expense>
 @{
     ViewData["Title"] = "Expenses";
+    string? search = ViewBag.Search;
+    string? month = ViewBag.Month;
+    string? range = ViewBag.Range;
+    int? selectedCategory = ViewBag.SelectedCategory;
+    string? categoryName = ViewBag.CategoryName;
+    bool hasFilter = !string.IsNullOrWhiteSpace(search) || !string.IsNullOrWhiteSpace(month)
+                     || selectedCategory.HasValue || !string.IsNullOrWhiteSpace(range);
+    var expenses = Model.ToList();
 }
 
 <!-- Filter Bar -->
-<div class="card border-0 shadow-sm mb-4">
+<div class="card border-0 mb-4">
     <div class="card-body">
+        <div class="d-flex flex-wrap gap-2 mb-3" role="group" aria-label="Quick date ranges">
+            <a asp-action="Index" asp-route-range="this-month" asp-route-categoryId="@selectedCategory" asp-route-search="@search"
+               class="btn btn-sm @(range == "this-month" ? "btn-primary" : "btn-outline-secondary")">This month</a>
+            <a asp-action="Index" asp-route-range="last-month" asp-route-categoryId="@selectedCategory" asp-route-search="@search"
+               class="btn btn-sm @(range == "last-month" ? "btn-primary" : "btn-outline-secondary")">Last month</a>
+            <a asp-action="Index" asp-route-range="this-year" asp-route-categoryId="@selectedCategory" asp-route-search="@search"
+               class="btn btn-sm @(range == "this-year" ? "btn-primary" : "btn-outline-secondary")">This year</a>
+        </div>
+
         <form method="get" class="row g-2 align-items-end">
             <div class="col-md-4">
-                <label class="form-label small fw-medium">Search</label>
+                <label for="f-search" class="form-label small fw-medium">Search</label>
                 <div class="input-group">
-                    <span class="input-group-text"><i class="fas fa-search text-muted"></i></span>
-                    <input type="text" name="search" value="@ViewBag.Search" class="form-control"
+                    <span class="input-group-text"><i class="fas fa-search text-muted" aria-hidden="true"></i></span>
+                    <input id="f-search" type="text" name="search" value="@search" class="form-control"
                            placeholder="Title or notes..." />
                 </div>
             </div>
             <div class="col-md-3">
-                <label class="form-label small fw-medium">Category</label>
-                <select name="categoryId" asp-items="@((SelectList)ViewBag.Categories)" class="form-select">
+                <label for="f-category" class="form-label small fw-medium">Category</label>
+                <select id="f-category" name="categoryId" asp-items="@((SelectList)ViewBag.Categories)" class="form-select">
                     <option value="">All Categories</option>
                 </select>
             </div>
             <div class="col-md-3">
-                <label class="form-label small fw-medium">Month</label>
-                <input type="month" name="month" value="@ViewBag.Month" class="form-control" />
+                <label for="f-month" class="form-label small fw-medium">Month</label>
+                <input id="f-month" type="month" name="month" value="@month" class="form-control" />
             </div>
             <div class="col-md-2 d-flex gap-2">
                 <button type="submit" class="btn btn-primary w-100">
-                    <i class="fas fa-filter me-1"></i>Filter
+                    <i class="fas fa-filter me-1" aria-hidden="true"></i>Filter
                 </button>
-                <a asp-action="Index" class="btn btn-outline-secondary" title="Clear">
-                    <i class="fas fa-times"></i>
+                <a asp-action="Index" class="btn btn-outline-secondary" title="Clear all filters" aria-label="Clear all filters">
+                    <i class="fas fa-times" aria-hidden="true"></i>
                 </a>
             </div>
         </form>
+
+        @if (hasFilter)
+        {
+            <div class="d-flex flex-wrap align-items-center gap-2 mt-3">
+                <span class="small text-muted">Active filters:</span>
+                @if (!string.IsNullOrWhiteSpace(search))
+                {
+                    <a asp-action="Index" asp-all-route-data="@(new Dictionary<string, string?> { ["month"] = month, ["categoryId"] = selectedCategory?.ToString(), ["range"] = range })"
+                       class="filter-chip" aria-label="Remove search filter">“@search” <span class="x"><i class="fas fa-times" aria-hidden="true"></i></span></a>
+                }
+                @if (!string.IsNullOrWhiteSpace(categoryName))
+                {
+                    <a asp-action="Index" asp-all-route-data="@(new Dictionary<string, string?> { ["search"] = search, ["month"] = month, ["range"] = range })"
+                       class="filter-chip" aria-label="Remove category filter">@categoryName <span class="x"><i class="fas fa-times" aria-hidden="true"></i></span></a>
+                }
+                @if (!string.IsNullOrWhiteSpace(month))
+                {
+                    <a asp-action="Index" asp-all-route-data="@(new Dictionary<string, string?> { ["search"] = search, ["categoryId"] = selectedCategory?.ToString(), ["range"] = range })"
+                       class="filter-chip" aria-label="Remove month filter">@month <span class="x"><i class="fas fa-times" aria-hidden="true"></i></span></a>
+                }
+                @if (range == "this-year")
+                {
+                    <a asp-action="Index" asp-all-route-data="@(new Dictionary<string, string?> { ["search"] = search, ["month"] = month, ["categoryId"] = selectedCategory?.ToString() })"
+                       class="filter-chip" aria-label="Remove year filter">This year <span class="x"><i class="fas fa-times" aria-hidden="true"></i></span></a>
+                }
+            </div>
+        }
     </div>
 </div>
 
-<!-- Table -->
-<div class="card border-0 shadow-sm">
+<!-- List -->
+<div class="card border-0">
     <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center pt-3">
         <div>
             <h6 class="fw-semibold mb-0">All Expenses</h6>
-            <small class="text-muted">@Model.Count() records found</small>
+            <small class="text-muted">@expenses.Count records found</small>
         </div>
         <a asp-action="Create" class="btn btn-primary btn-sm">
-            <i class="fas fa-plus me-1"></i> Add New
+            <i class="fas fa-plus me-1" aria-hidden="true"></i> Add New
         </a>
     </div>
     <div class="card-body p-0">
-        @if (!Model.Any())
+        @if (!expenses.Any())
         {
-            <div class="text-center text-muted py-5">
-                <i class="fas fa-receipt fs-1 mb-2 d-block"></i>
-                No expenses found.
-                <a asp-action="Create">Add your first expense!</a>
-            </div>
+            @if (hasFilter)
+            {
+                <partial name="_EmptyState" model="@(new EmptyStateModel("fa-filter", "No expenses match these filters", "Try removing a filter or widening the date range."))" />
+            }
+            else
+            {
+                <partial name="_EmptyState" model="@(new EmptyStateModel("fa-receipt", "No expenses yet", "Add your first expense to start tracking.", "Add your first expense", Url.Action("Create")))" />
+            }
         }
         else
         {
-            <div class="table-responsive">
+            <!-- Desktop table -->
+            <div class="table-responsive d-none d-md-block">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th>Title</th>
-                            <th>Category</th>
-                            <th>Date</th>
-                            <th>Notes</th>
-                            <th class="text-end">Amount</th>
-                            <th class="text-center">Actions</th>
+                            <th scope="col">Title</th>
+                            <th scope="col">Category</th>
+                            <th scope="col">Date</th>
+                            <th scope="col">Notes</th>
+                            <th scope="col" class="text-end">Amount</th>
+                            <th scope="col" class="text-center">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var expense in Model)
+                        @foreach (var expense in expenses)
                         {
                             <tr>
                                 <td class="fw-medium">@expense.Title</td>
                                 <td>
-                                    <span class="badge rounded-pill"
-                                          style="background-color:@expense.Category.Color">
-                                        <i class="@expense.Category.Icon me-1"></i>@expense.Category.Name
+                                    <span class="badge rounded-pill cat-badge"
+                                          style="background-color:@expense.Category.Color;color:@ColorHelper.TextOn(expense.Category.Color)">
+                                        <i class="@expense.Category.Icon me-1" aria-hidden="true"></i>@expense.Category.Name
                                     </span>
                                 </td>
                                 <td class="text-muted small">@expense.Date.ToString("dd MMM yyyy")</td>
                                 <td class="text-muted small">@(expense.Notes?.Length > 40 ? expense.Notes[..40] + "…" : expense.Notes ?? "-")</td>
-                                <td class="text-end fw-semibold text-danger">PKR @expense.Amount.ToString("N2")</td>
-                                <td class="text-center">
+                                <td class="text-end fw-semibold text-negative">@Cur.Format(expense.Amount)</td>
+                                <td class="text-center text-nowrap">
                                     <a asp-action="Edit" asp-route-id="@expense.Id"
-                                       class="btn btn-sm btn-outline-primary me-1" title="Edit">
-                                        <i class="fas fa-edit"></i>
+                                       class="btn btn-sm btn-outline-primary me-1" title="Edit" aria-label="Edit @expense.Title">
+                                        <i class="fas fa-edit" aria-hidden="true"></i>
                                     </a>
                                     <form asp-action="Delete" asp-route-id="@expense.Id" method="post" class="d-inline"
                                           data-confirm="Delete the expense '@expense.Title'? This cannot be undone.">
                                         @Html.AntiForgeryToken()
-                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
-                                            <i class="fas fa-trash"></i>
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete" aria-label="Delete @expense.Title">
+                                            <i class="fas fa-trash" aria-hidden="true"></i>
                                         </button>
                                     </form>
                                 </td>
@@ -104,11 +152,53 @@
                     <tfoot class="table-light">
                         <tr>
                             <td colspan="4" class="fw-bold">Total</td>
-                            <td class="text-end fw-bold text-danger">PKR @Model.Sum(e => e.Amount).ToString("N2")</td>
+                            <td class="text-end fw-bold text-negative">@Cur.Format(expenses.Sum(e => e.Amount))</td>
                             <td></td>
                         </tr>
                     </tfoot>
                 </table>
+            </div>
+
+            <!-- Mobile cards -->
+            <div class="d-md-none">
+                @foreach (var expense in expenses)
+                {
+                    <div class="expense-card">
+                        <div class="d-flex justify-content-between align-items-start gap-2">
+                            <div class="min-w-0">
+                                <div class="fw-semibold">@expense.Title</div>
+                                <div class="small text-muted">@expense.Date.ToString("dd MMM yyyy")</div>
+                            </div>
+                            <div class="fw-semibold text-negative text-nowrap">@Cur.Format(expense.Amount)</div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <span class="badge rounded-pill cat-badge"
+                                  style="background-color:@expense.Category.Color;color:@ColorHelper.TextOn(expense.Category.Color)">
+                                <i class="@expense.Category.Icon me-1" aria-hidden="true"></i>@expense.Category.Name
+                            </span>
+                            <div class="d-flex gap-1">
+                                <a asp-action="Edit" asp-route-id="@expense.Id" class="btn btn-sm btn-outline-primary" aria-label="Edit @expense.Title">
+                                    <i class="fas fa-edit" aria-hidden="true"></i>
+                                </a>
+                                <form asp-action="Delete" asp-route-id="@expense.Id" method="post"
+                                      data-confirm="Delete the expense '@expense.Title'? This cannot be undone.">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" aria-label="Delete @expense.Title">
+                                        <i class="fas fa-trash" aria-hidden="true"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        @if (!string.IsNullOrWhiteSpace(expense.Notes))
+                        {
+                            <div class="small text-muted mt-2">@expense.Notes</div>
+                        }
+                    </div>
+                }
+                <div class="d-flex justify-content-between p-3 bg-body-tertiary fw-bold">
+                    <span>Total</span>
+                    <span class="text-negative">@Cur.Format(expenses.Sum(e => e.Amount))</span>
+                </div>
             </div>
         }
     </div>

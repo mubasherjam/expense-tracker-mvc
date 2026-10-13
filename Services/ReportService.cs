@@ -1,4 +1,4 @@
-using ExpenseTracker.Models;
+﻿using ExpenseTracker.Models;
 using ExpenseTracker.Models.ViewModels;
 using iTextSharp.text;
 using iTextSharp.text.pdf;
@@ -11,6 +11,10 @@ namespace ExpenseTracker.Services
 {
     public class ReportService
     {
+        private readonly CurrencyService _currency;
+
+        public ReportService(CurrencyService currency) => _currency = currency;
+
         public ReportViewModel BuildReportViewModel(List<Expense> expenses, int month, int year)
         {
             var grandTotal = expenses.Sum(e => e.Amount);
@@ -67,7 +71,7 @@ namespace ExpenseTracker.Services
             ws.Cells["A3"].Style.Font.Bold = true;
             ws.Cells["A3"].Style.Font.Size = 12;
 
-            string[] summaryHeaders = { "Category", "# Expenses", "Total (PKR)", "% of Total" };
+            string[] summaryHeaders = { "Category", "# Expenses", $"Total ({_currency.Code})", "% of Total" };
             for (int i = 0; i < summaryHeaders.Length; i++)
             {
                 ws.Cells[4, i + 1].Value = summaryHeaders[i];
@@ -102,7 +106,7 @@ namespace ExpenseTracker.Services
             ws.Cells[row, 1].Style.Font.Size = 12;
             row++;
 
-            string[] detailHeaders = { "#", "Date", "Title", "Category", "Notes", "Amount (PKR)" };
+            string[] detailHeaders = { "#", "Date", "Title", "Category", "Notes", $"Amount ({_currency.Code})" };
             for (int i = 0; i < detailHeaders.Length; i++)
             {
                 ws.Cells[row, i + 1].Value = detailHeaders[i];
@@ -153,7 +157,7 @@ namespace ExpenseTracker.Services
 
             // Summary cards
             doc.Add(new Paragraph("Summary", subTitle));
-            doc.Add(new Paragraph($"Total Expenses: PKR {report.GrandTotal:N2}    |    Transactions: {report.Expenses.Count}\n\n", boldBody));
+            doc.Add(new Paragraph($"Total Expenses: {_currency.Code} {report.GrandTotal:N2}    |    Transactions: {report.Expenses.Count}\n\n", boldBody));
 
             // Category Breakdown Table
             doc.Add(new Paragraph("Category Breakdown\n", subTitle));
@@ -174,7 +178,7 @@ namespace ExpenseTracker.Services
             var headerBg = new BaseColor(52, 152, 219);
             addCell(catTable, "Category",    headerFont, headerBg);
             addCell(catTable, "# Expenses",  headerFont, headerBg);
-            addCell(catTable, "Total (PKR)", headerFont, headerBg);
+            addCell(catTable, $"Total ({_currency.Code})", headerFont, headerBg);
             addCell(catTable, "% of Total",  headerFont, headerBg);
 
             bool alt = false;
@@ -183,7 +187,7 @@ namespace ExpenseTracker.Services
                 var rowBg = alt ? new BaseColor(245, 245, 245) : BaseColor.WHITE;
                 addCell(catTable, item.CategoryName,         bodyFont, rowBg);
                 addCell(catTable, item.Count.ToString(),     bodyFont, rowBg);
-                addCell(catTable, $"PKR {item.Total:N2}",   bodyFont, rowBg);
+                addCell(catTable, $"{_currency.Code} {item.Total:N2}",   bodyFont, rowBg);
                 addCell(catTable, $"{item.Percentage}%",     bodyFont, rowBg);
                 alt = !alt;
             }
@@ -192,7 +196,7 @@ namespace ExpenseTracker.Services
             var totalBg = new BaseColor(236, 240, 241);
             addCell(catTable, "TOTAL",                           boldBody, totalBg);
             addCell(catTable, report.Expenses.Count.ToString(),  boldBody, totalBg);
-            addCell(catTable, $"PKR {report.GrandTotal:N2}",    boldBody, totalBg);
+            addCell(catTable, $"{_currency.Code} {report.GrandTotal:N2}",    boldBody, totalBg);
             addCell(catTable, "100%",                            boldBody, totalBg);
 
             doc.Add(catTable);
@@ -218,7 +222,7 @@ namespace ExpenseTracker.Services
                 addCell(expTable, e.Title,                          bodyFont, rowBg);
                 addCell(expTable, e.Category?.Name ?? "",           bodyFont, rowBg);
                 addCell(expTable, e.Notes ?? "-",                   bodyFont, rowBg);
-                addCell(expTable, $"PKR {e.Amount:N2}",            bodyFont, rowBg);
+                addCell(expTable, $"{_currency.Code} {e.Amount:N2}",            bodyFont, rowBg);
                 alt = !alt;
             }
 

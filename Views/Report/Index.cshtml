@@ -51,7 +51,7 @@
 <div class="row g-3 mb-4">
     <div class="col-md-4">
         <div class="card border-0 shadow-sm text-center py-3">
-            <div class="fs-2 fw-bold text-danger">PKR @Model.GrandTotal.ToString("N2")</div>
+            <div class="fs-2 fw-bold text-danger">@Cur.Format(Model.GrandTotal)</div>
             <div class="text-muted small">Total spent in @monthName</div>
         </div>
     </div>
@@ -64,7 +64,7 @@
     <div class="col-md-4">
         <div class="card border-0 shadow-sm text-center py-3">
             <div class="fs-2 fw-bold text-success">
-                @(Model.Expenses.Count > 0 ? $"PKR {(Model.GrandTotal / Model.Expenses.Count):N2}" : "N/A")
+                @(Model.Expenses.Count > 0 ? Cur.Format(Model.GrandTotal / Model.Expenses.Count) : "N/A")
             </div>
             <div class="text-muted small">Average per transaction</div>
         </div>
@@ -98,12 +98,12 @@
                         {
                             <tr>
                                 <td>
-                                    <span class="badge rounded-pill me-2" style="background-color:@item.Color">
+                                    <span class="badge rounded-pill me-2" style="background-color:@item.Color;color:@ColorHelper.TextOn(item.Color)">
                                         <i class="@item.Icon me-1"></i>@item.CategoryName
                                     </span>
                                 </td>
                                 <td class="text-center">@item.Count</td>
-                                <td class="text-end fw-semibold">PKR @item.Total.ToString("N2")</td>
+                                <td class="text-end fw-semibold">@Cur.Format(item.Total)</td>
                                 <td>
                                     <div class="d-flex align-items-center gap-2">
                                         <div class="progress flex-grow-1" style="height:8px">
@@ -122,7 +122,7 @@
                         <tr>
                             <td class="fw-bold">Total</td>
                             <td class="text-center fw-bold">@Model.Expenses.Count</td>
-                            <td class="text-end fw-bold text-danger">PKR @Model.GrandTotal.ToString("N2")</td>
+                            <td class="text-end fw-bold text-danger">@Cur.Format(Model.GrandTotal)</td>
                             <td></td>
                         </tr>
                     </tfoot>
@@ -158,12 +158,12 @@
                                 <td class="text-muted small">@e.Date.ToString("dd MMM")</td>
                                 <td class="fw-medium">@e.Title</td>
                                 <td>
-                                    <span class="badge rounded-pill" style="background-color:@e.Category.Color">
+                                    <span class="badge rounded-pill" style="background-color:@e.Category.Color;color:@ColorHelper.TextOn(e.Category.Color)">
                                         @e.Category.Name
                                     </span>
                                 </td>
                                 <td class="text-muted small">@(e.Notes ?? "-")</td>
-                                <td class="text-end fw-semibold text-danger">PKR @e.Amount.ToString("N2")</td>
+                                <td class="text-end fw-semibold text-danger">@Cur.Format(e.Amount)</td>
                             </tr>
                         }
                     </tbody>
